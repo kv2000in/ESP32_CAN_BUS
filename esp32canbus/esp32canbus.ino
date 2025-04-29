@@ -18,13 +18,13 @@ void setup()
   Serial.begin(115200);
   
   // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
-  if(CAN0.begin(MCP_STD, CAN_250KBPS, MCP_8MHZ) == CAN_OK)
+  if(CAN0.begin(MCP_ANY, CAN_250KBPS, MCP_8MHZ) == CAN_OK)
     Serial.println("MCP2515 Initialized Successfully!");
   else
     Serial.println("Error Initializing MCP2515...");
   
-  CAN0.setMode(MCP_LISTENONLY);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
-
+  //CAN0.setMode(MCP_LISTENONLY);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
+CAN0.setMode(MCP_NORMAL);
   pinMode(CAN0_INT, INPUT);                            // Configuring pin for /INT input
   
   Serial.println("MCP2515 Library Receive Example...");
@@ -56,6 +56,29 @@ void loop()
     Serial.println();
   }
 }
+
+//Battery connected to controller :::
+//OUTPUT LOOKS LIKE WHEN IDLE
+//Extended ID: 0x00000024  DLC: 4  Data: 0x0A 0x00 0x00 0xFD
+//WHEN DYNAMO ACTIVE
+//Extended ID: 0x000002E2  DLC: 8  Data: 0x99 0xEE 0x99 0xEE 0x99 0xEE 0x99 0xEE
+/*
+21:32:20.058 -> Standard ID: 0x600       DLC: 4  Data: 0x0C 0x00 0x03 0x00
+21:32:20.058 -> Extended ID: 0x000002E2  DLC: 8  Data: 0x99 0xEE 0x99 0xEE 0x99 0xEE 0x99 0xEE
+21:32:20.791 -> Extended ID: 0x000002E2  DLC: 8  Data: 0x99 0xEE 0x99 0xEE 0x99 0xEE 0x99 0xEE
+21:32:21.799 -> Extended ID: 0x000002E2  DLC: 8  Data: 0x99 0xEE 0x99 0xEE 0x99 0xEE 0x99 0xEE
+
+*/
+
+//Battery disconnected :
+//Dynamo on 
+//Standard ID: 0x600       DLC: 4  Data: 0x0C 0x00 0x03 0x00 - repeats
+//
+//Towards the end when dynamo voltage falling 
+//Extended ID: 0x180774FE  DLC: 4  Data: 0x3F 0x00 0x03 0x00
+
+//messages on the CAN BUS repeat every 30 mS in LISTEN_ONLY mode (presuming no ACK being sent)
+//messages from the battery(Extended ID: 0x00000024  DLC: 4  Data: 0x0A 0x00 0x00 0xFD) repeat every 4 seconds in NORMAL mode.
 
 /*********************************************************************************************************
   END FILE
