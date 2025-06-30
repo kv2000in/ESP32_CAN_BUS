@@ -6,10 +6,35 @@
 	objectVersion = 50;
 	objects = {
 
+/* Begin PBXFileReference section */
+		2A77F5AF2DB5798600B896E1 /* esp32canbus.ino */ = {isa = PBXFileReference; lastKnownFileType = text; name = esp32canbus.ino; path = esp32canbus/esp32canbus.ino; sourceTree = "<group>"; };
+		2A77F5B02DB70BD100B896E1 /* Atmega328MCP2515CANSender.ino */ = {isa = PBXFileReference; lastKnownFileType = text; name = Atmega328MCP2515CANSender.ino; path = ../Atmega328MCP2515CANSender/Atmega328MCP2515CANSender.ino; sourceTree = "<group>"; };
+		2A77F5B12DC06D8D00B896E1 /* Atmega328MCP2515CANSender */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Atmega328MCP2515CANSender; sourceTree = "<group>"; };
+		2A7A1F202DE3E49F0053F196 /* bq7620BDatasheet.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = bq7620BDatasheet.pdf; sourceTree = "<group>"; };
+		2A7A1F212DE3E49F0053F196 /* 2410121448_Wuxi-NCE-Power-Semiconductor-NCEP01T13AD_C341720.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "2410121448_Wuxi-NCE-Power-Semiconductor-NCEP01T13AD_C341720.pdf"; sourceTree = "<group>"; };
+		2A7A1F222DE3E49F0053F196 /* bq78350.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = bq78350.pdf; sourceTree = "<group>"; };
+		2A7A1F232DE3E49F0053F196 /* bq76930EVMUserguide.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = bq76930EVMUserguide.pdf; sourceTree = "<group>"; };
+		2A7A1F242DE3E4A00053F196 /* PIC18F26K85Datasheet.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = PIC18F26K85Datasheet.pdf; sourceTree = "<group>"; };
+		2A7A1F252DE3E4EA0053F196 /* en */ = {isa = PBXFileReference; name = en; path = en.lproj/ReadME.txt; sourceTree = "<group>"; };
+		2A7A1F272E10793F0053F196 /* BF-DM-C-SR PA2XX.32.ST.C-EN (with securing ring).pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "BF-DM-C-SR PA2XX.32.ST.C-EN (with securing ring).pdf"; sourceTree = "<group>"; };
+		2A7A1F282E10A8410053F196 /* 18 Bafang motor manual G020.250.DC 072617.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "18 Bafang motor manual G020.250.DC 072617.pdf"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
 /* Begin PBXGroup section */
 		2A77F5A82DB5795C00B896E1 = {
 			isa = PBXGroup;
 			children = (
+				2A7A1F282E10A8410053F196 /* 18 Bafang motor manual G020.250.DC 072617.pdf */,
+				2A7A1F272E10793F0053F196 /* BF-DM-C-SR PA2XX.32.ST.C-EN (with securing ring).pdf */,
+				2A7A1F212DE3E49F0053F196 /* 2410121448_Wuxi-NCE-Power-Semiconductor-NCEP01T13AD_C341720.pdf */,
+				2A7A1F202DE3E49F0053F196 /* bq7620BDatasheet.pdf */,
+				2A7A1F232DE3E49F0053F196 /* bq76930EVMUserguide.pdf */,
+				2A7A1F222DE3E49F0053F196 /* bq78350.pdf */,
+				2A7A1F242DE3E4A00053F196 /* PIC18F26K85Datasheet.pdf */,
+				2A7A1F262DE3E4EA0053F196 /* ReadME.txt */,
+				2A77F5AF2DB5798600B896E1 /* esp32canbus.ino */,
+				2A77F5B02DB70BD100B896E1 /* Atmega328MCP2515CANSender.ino */,
+				2A77F5B12DC06D8D00B896E1 /* Atmega328MCP2515CANSender */,
 			);
 			sourceTree = "<group>";
 		};
@@ -35,6 +60,18 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXVariantGroup section */
+		2A7A1F262DE3E4EA0053F196 /* ReadME.txt */ = {
+			isa = PBXVariantGroup;
+			children = (
+				2A7A1F252DE3E4EA0053F196 /* en */,
+			);
+			name = ReadME.txt;
+			path = ..;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		2A77F5AD2DB5795C00B896E1 /* Debug */ = {
