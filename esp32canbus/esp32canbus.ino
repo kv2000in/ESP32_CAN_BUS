@@ -1,6 +1,26 @@
 // CAN Receive Example
 //
 
+/* Up until these changes - this compiles for both Atmega 328 Minicore and ESP32 Dev module using Arduino 1.8.6 hourly build 2018/05/28 10:12
+ *  ESP32 Default SPI pins are
+ *  GPIO 5 = CS
+ *  GPIO 18  =SCK
+ *  GPIO 19 = MISO
+ *  GPIO 23 = MOSI
+ *  
+ *  Connect MOSI to MOSI and MISO to MISO
+ *  
+ *  This works. ESP32-S to MCP2515 direct connection at 3.3 V logic level.
+ *  INT to 4
+ *  SCK-18
+ *  SI-23
+ *  SO-19
+ *  CS-5
+ *  GND-GND
+ *  VCC-3.3V
+ *  
+ */
+
 #include <mcp_can.h>
 #include <SPI.h>
 
@@ -9,8 +29,8 @@ unsigned char len = 0;
 unsigned char rxBuf[8];
 char msgString[128];                        // Array to store serial string
 
-#define CAN0_INT 2                              // Set INT to pin 2
-MCP_CAN CAN0(10);                               // Set CS to pin 10
+#define CAN0_INT 4                              // Set INT to pin 4 (2 for Atmega)
+MCP_CAN CAN0(5);                               // Set CS to pin 5 (10 for Atmega)
 
 
 void setup()

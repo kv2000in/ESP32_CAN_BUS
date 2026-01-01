@@ -15,15 +15,23 @@
 		2A7A1F222DE3E49F0053F196 /* bq78350.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = bq78350.pdf; sourceTree = "<group>"; };
 		2A7A1F232DE3E49F0053F196 /* bq76930EVMUserguide.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = bq76930EVMUserguide.pdf; sourceTree = "<group>"; };
 		2A7A1F242DE3E4A00053F196 /* PIC18F26K85Datasheet.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = PIC18F26K85Datasheet.pdf; sourceTree = "<group>"; };
-		2A7A1F252DE3E4EA0053F196 /* en */ = {isa = PBXFileReference; name = en; path = en.lproj/ReadME.txt; sourceTree = "<group>"; };
+		2A7A1F252DE3E4EA0053F196 /* en */ = {isa = PBXFileReference; lastKnownFileType = text; name = en; path = en.lproj/ReadME.txt; sourceTree = "<group>"; };
 		2A7A1F272E10793F0053F196 /* BF-DM-C-SR PA2XX.32.ST.C-EN (with securing ring).pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "BF-DM-C-SR PA2XX.32.ST.C-EN (with securing ring).pdf"; sourceTree = "<group>"; };
 		2A7A1F282E10A8410053F196 /* 18 Bafang motor manual G020.250.DC 072617.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "18 Bafang motor manual G020.250.DC 072617.pdf"; sourceTree = "<group>"; };
+		2A7A1F2A2E1DF1190053F196 /* ManualSturmeyArcherFRONT DRUM BRAKE HUBS.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "ManualSturmeyArcherFRONT DRUM BRAKE HUBS.pdf"; sourceTree = "<group>"; };
+		2A7A1F2B2E1DF1190053F196 /* PART LIST - XL-FDD.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "PART LIST - XL-FDD.pdf"; sourceTree = "<group>"; };
+		2A7A1F2C2E1DF1190053F196 /* SturmeyArcherFRONT DRUM BRAKE HUBS.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "SturmeyArcherFRONT DRUM BRAKE HUBS.pdf"; sourceTree = "<group>"; };
+		2AB557692F0704A30042A369 /* ESP32DefaultSpiPins.ino */ = {isa = PBXFileReference; lastKnownFileType = text; name = ESP32DefaultSpiPins.ino; path = ESP32DefaultSpiPins/ESP32DefaultSpiPins.ino; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		2A77F5A82DB5795C00B896E1 = {
 			isa = PBXGroup;
 			children = (
+				2AB557692F0704A30042A369 /* ESP32DefaultSpiPins.ino */,
+				2A7A1F2A2E1DF1190053F196 /* ManualSturmeyArcherFRONT DRUM BRAKE HUBS.pdf */,
+				2A7A1F2B2E1DF1190053F196 /* PART LIST - XL-FDD.pdf */,
+				2A7A1F2C2E1DF1190053F196 /* SturmeyArcherFRONT DRUM BRAKE HUBS.pdf */,
 				2A7A1F282E10A8410053F196 /* 18 Bafang motor manual G020.250.DC 072617.pdf */,
 				2A7A1F272E10793F0053F196 /* BF-DM-C-SR PA2XX.32.ST.C-EN (with securing ring).pdf */,
 				2A7A1F212DE3E49F0053F196 /* 2410121448_Wuxi-NCE-Power-Semiconductor-NCEP01T13AD_C341720.pdf */,
