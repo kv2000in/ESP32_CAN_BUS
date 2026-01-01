@@ -19,8 +19,29 @@
  *  GND-GND
  *  VCC-3.3V
  *  
+ *  Create an AP
+ *  Webpage stays locally on the client. Clinet connects via websocket to ESP32
+ *  push CANBUS messages to WebSocket
+ *  Capture events like Start saving. Stop Saving. Cruising, pedaling, etc 
+ *  
+ *  no default IDE option to erase Flash
+ *  use this
+ *  /Users/kv2000in/Library/Arduino15/packages/esp32/tools/esptool_py/3.0.0/esptool --chip esp32 --port /dev/cu.wchusbserialfa14200 --baud 115200 erase_flash
+ *  
+ *  however, erasing flash doesn't lead to successful custom AP name creation.
+ *  
+ *  from the docs https://docs.espressif.com/projects/arduino-esp32/en/latest/api/wifi.html#ap-example
+ *  
+ *  "// a valid password must have more than 7 characters" - this worked
+ *  
  */
 
+
+
+
+
+// Load Wi-Fi library
+#include <WiFi.h>
 #include <mcp_can.h>
 #include <SPI.h>
 
@@ -33,11 +54,49 @@ char msgString[128];                        // Array to store serial string
 MCP_CAN CAN0(5);                               // Set CS to pin 5 (10 for Atmega)
 
 
+
 void setup()
 {
-  Serial.begin(115200);
-  
-  // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
+
+Serial.begin(115200);
+Serial.println("############################");
+Serial.println("ESP32 Information");
+  Serial.printf(
+    "Internal Total Heap %d, Internal Used Heap %d, Internal Free Heap %d\n",
+    ESP.getHeapSize(),
+    ESP.getHeapSize() - ESP.getFreeHeap(),
+    ESP.getFreeHeap()
+  );
+
+  Serial.printf(
+    "Sketch Size %d, Free Sketch Space %d\n",
+    ESP.getSketchSize(),
+    ESP.getFreeSketchSpace()
+  );
+
+  Serial.printf(
+    "SPIRam Total Heap %d, SPIRam Free Heap %d\n",
+    ESP.getPsramSize(),
+    ESP.getFreePsram()
+  );
+
+  Serial.printf(
+    "Chip Model %s, Chip Revision %d, CPU Freq %d MHz, SDK Version %s\n",
+    ESP.getChipModel(),
+    ESP.getChipRevision(),
+    ESP.getCpuFreqMHz(),
+    ESP.getSdkVersion()
+  );
+
+  Serial.printf(
+    "Flash Size %d, Flash Speed %d\n",
+    ESP.getFlashChipSize(),
+    ESP.getFlashChipSpeed()
+  );
+Serial.println("############################");
+
+
+// Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
   if(CAN0.begin(MCP_ANY, CAN_250KBPS, MCP_8MHZ) == CAN_OK)
     Serial.println("MCP2515 Initialized Successfully!");
   else
@@ -48,6 +107,30 @@ CAN0.setMode(MCP_NORMAL);
   pinMode(CAN0_INT, INPUT);                            // Configuring pin for /INT input
   
   Serial.println("MCP2515 Library Receive Example...");
+
+    Serial.print("Setting AP (Access Point)…");
+  delay(1000);
+
+  // Disconnect and erase stored WiFi credentials
+  WiFi.disconnect(true, true);
+  delay(1000);
+
+  WiFi.mode(WIFI_MODE_NULL);
+  delay(1000);
+
+  // Force AP-only mode
+  WiFi.mode(WIFI_AP);
+
+  const char* ssid = "ESP32CANBUS";
+  const char* password = "hanuman123";
+
+  bool ok = WiFi.softAP(ssid, password);
+
+  Serial.println(ok ? "AP started" : "AP failed");
+  Serial.print("AP IP: ");
+  Serial.println(WiFi.softAPIP());
+
+  
 }
 
 void loop()
@@ -76,30 +159,3 @@ void loop()
     Serial.println();
   }
 }
-
-//Battery connected to controller :::
-//OUTPUT LOOKS LIKE WHEN IDLE
-//Extended ID: 0x00000024  DLC: 4  Data: 0x0A 0x00 0x00 0xFD
-//WHEN DYNAMO ACTIVE
-//Extended ID: 0x000002E2  DLC: 8  Data: 0x99 0xEE 0x99 0xEE 0x99 0xEE 0x99 0xEE
-/*
-21:32:20.058 -> Standard ID: 0x600       DLC: 4  Data: 0x0C 0x00 0x03 0x00
-21:32:20.058 -> Extended ID: 0x000002E2  DLC: 8  Data: 0x99 0xEE 0x99 0xEE 0x99 0xEE 0x99 0xEE
-21:32:20.791 -> Extended ID: 0x000002E2  DLC: 8  Data: 0x99 0xEE 0x99 0xEE 0x99 0xEE 0x99 0xEE
-21:32:21.799 -> Extended ID: 0x000002E2  DLC: 8  Data: 0x99 0xEE 0x99 0xEE 0x99 0xEE 0x99 0xEE
-
-*/
-
-//Battery disconnected :
-//Dynamo on 
-//Standard ID: 0x600       DLC: 4  Data: 0x0C 0x00 0x03 0x00 - repeats
-//
-//Towards the end when dynamo voltage falling 
-//Extended ID: 0x180774FE  DLC: 4  Data: 0x3F 0x00 0x03 0x00
-
-//messages on the CAN BUS repeat every 30 mS in LISTEN_ONLY mode (presuming no ACK being sent)
-//messages from the battery(Extended ID: 0x00000024  DLC: 4  Data: 0x0A 0x00 0x00 0xFD) repeat every 4 seconds in NORMAL mode.
-
-/*********************************************************************************************************
-  END FILE
-*********************************************************************************************************/
