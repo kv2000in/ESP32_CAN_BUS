@@ -1,60 +1,197 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
+		<meta charset="UTF-8">
+			<title>CAN WebSocket Monitor</title>
+			<style>
+				body {
+					font-family: monospace;
+					margin: 10px;
+				}
+			
+			#controls {
+				margin-bottom: 10px;
+			}
+			
+			button {
+				margin: 2px;
+				padding: 6px 10px;
+				cursor: pointer;
+			}
+			
+			#logBox {
+				border: 1px solid #555;
+				padding: 8px;
+				height: 300px;
+				overflow-y: auto;
+				white-space: pre;
+				font-size: 13px;
+			}
+			
+			#wsStatus {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				margin-bottom: 8px;
+				font-family: monospace;
+			}
+			
+			#wsLight {
+				width: 14px;
+				height: 14px;
+				border-radius: 50%;
+				background: #555;
+				box-shadow: 0 0 5px #000;
+			}
+			
+			#wsLight.ws-connected {
+				background: #00ff00;
+				box-shadow: 0 0 8px #00ff00;
+			}
+			
+			#wsLight.ws-disconnected {
+				background: #ff0000;
+				box-shadow: 0 0 8px #ff0000;
+			}
+			
+			#wsLight.ws-connecting {
+				background: #999;
+				box-shadow: 0 0 8px #999;
+			}
+
+			</style>
+	</head>
+	<body>
 		
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-			<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
-			<meta http-equiv="Content-Language" content="hi" />
-			<title>Smart Sensors</title>
-
-<body>
-
-</body>
-<script>
-	var gateway = `ws:192.168.4.1/ws`;
-	var websocket;
-	window.addEventListener('load', onLoad);
-	function initWebSocket() {
-		console.log('Trying to open a WebSocket connection...');
-		websocket = new WebSocket(gateway);
-		websocket.binaryType = "arraybuffer";
-		websocket.onopen    = onOpen;
-		websocket.onclose   = onClose;
-		websocket.onmessage = (event) => {
-			const data = new Uint8Array(event.data);
+		<div id="wsStatus">
+			<span id="wsLight"></span>
+			<span id="wsText">DISCONNECTED</span>
+		</div>
+		
+		<div id="controls">
+			<!-- Event recorder buttons -->
+			<button onclick="logEvent('Pedal Start')">Pedal Start</button>
+			<button onclick="logEvent('Gliding')">Gliding</button>
+			<button onclick="logEvent('Stopped Moving')">Stopped</button>
+			<button onclick="logEvent('Pedal Restart')">Restart</button>
+			<button onclick="logEvent('EVENT 5')">5</button>
+			<button onclick="logEvent('EVENT 6')">6</button>
 			
-			const id =
-			(data[0] << 24) |
-			(data[1] << 16) |
-			(data[2] << 8) |
-			data[3];
+			<!-- Utility buttons -->
+			<button onclick="saveLog()">Save</button>
+			<button onclick="clearLog()">Clear</button>
+			<button onclick="connectWebSocket()">Connect</button>
 			
-			const dlc = data[4];
-			const flags = data[5];
-			const payload = data.slice(6, 6 + dlc);
+		</div>
+		
+		<div id="logBox"></div>
+		
+		<script>
+			/* ---------------- WebSocket ---------------- */
 			
-			console.log("CAN ID:", id.toString(16));
-			console.log("DATA:", [...payload].map(b => b.toString(16)));
-		};
-	}
-function onOpen(event) {
-	console.log('Connection opened');
-}
-function onClose(event) {
-	console.log('Connection closed');
-	setTimeout(initWebSocket, 2000);
-}
-
-function onLoad(event) {
-	initWebSocket();
-
-}
-
-
-
-
-
-
-</script>
+			let ws;
+			const wsLight = document.getElementById("wsLight");
+			const wsText  = document.getElementById("wsText");
+			
+			function setWsStatus(state) {
+				wsLight.className = "";
+				wsLight.classList.add(`ws-${state}`);
+				wsText.textContent = state.toUpperCase();
+			}
+		
+			function connectWebSocket() {
+				setWsStatus("connecting");
+			ws = new WebSocket("ws://192.168.4.1/ws"); // <-- change IP
+			ws.binaryType = "arraybuffer";
+			ws.onopen = () => {
+				setWsStatus("connected");
+			};
+			
+			ws.onclose = () => {
+				setWsStatus("disconnected");
+			};
+			
+			ws.onerror = () => {
+				setWsStatus("disconnected");
+			};
+			ws.onmessage = (event) => {
+				if (!(event.data instanceof ArrayBuffer)) return;
+				
+				const data = new Uint8Array(event.data);
+				
+					// ---- Decode frame (must match ESP32 format) ----
+					const id =
+					(data[0] << 24) |
+					(data[1] << 16) |
+					(data[2] << 8) |
+					data[3];
+					
+					const dlc   = data[4];
+					const flags = data[5];
+					
+					const isExtended = flags & 0x01;
+					const isRTR      = flags & 0x02;
+					
+					const payload = data.slice(6, 6 + dlc);
+					
+					let line = `${timestamp()} -> `;
+					
+					if (isExtended) {
+						line += `Extended ID: 0x${(id & 0x1FFFFFFF).toString(16).padStart(8, '0').toUpperCase()}`;
+					} else {
+						line += `Standard ID: 0x${(id & 0x7FF).toString(16).padStart(3, '0').toUpperCase()}       `;
+					}
+					
+					line += `  DLC: ${dlc}  Data:`;
+					
+					if (!isRTR) {
+						payload.forEach(b => {
+										line += ` 0x${b.toString(16).padStart(2, '0').toUpperCase()}`;
+										});
+					} else {
+						line += " REMOTE REQUEST FRAME";
+					}
+					
+					appendLog(line);
+			};
+			};
+		
+		/* ---------------- Logging helpers ---------------- */
+		function appendLog(text) {
+			const box = document.getElementById("logBox");
+			box.textContent += text + "\n";
+			box.scrollTop = box.scrollHeight;
+		}
+		
+		function timestamp() {
+			const now = new Date();
+			return now.toLocaleTimeString('en-GB', { hour12: false }) +
+			'.' + now.getMilliseconds().toString().padStart(3, '0');
+		}
+		
+		/* ---------------- Event buttons ---------------- */
+		function logEvent(name) {
+			appendLog(`${timestamp()} -> ${name}`);
+		}
+		
+		/* ---------------- Save / Clear ---------------- */
+		function saveLog() {
+			const text = document.getElementById("logBox").textContent;
+			const blob = new Blob([text], { type: "text/plain" });
+			const url = URL.createObjectURL(blob);
+			
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = "can_log.txt";
+			a.click();
+			
+			URL.revokeObjectURL(url);
+		}
+		
+		function clearLog() {
+			document.getElementById("logBox").textContent = "";
+		}
+		</script>
+		
+	</body>
 </html>
