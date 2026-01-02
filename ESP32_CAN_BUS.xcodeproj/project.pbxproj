@@ -22,12 +22,14 @@
 		2A7A1F2B2E1DF1190053F196 /* PART LIST - XL-FDD.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "PART LIST - XL-FDD.pdf"; sourceTree = "<group>"; };
 		2A7A1F2C2E1DF1190053F196 /* SturmeyArcherFRONT DRUM BRAKE HUBS.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "SturmeyArcherFRONT DRUM BRAKE HUBS.pdf"; sourceTree = "<group>"; };
 		2AB557692F0704A30042A369 /* ESP32DefaultSpiPins.ino */ = {isa = PBXFileReference; lastKnownFileType = text; name = ESP32DefaultSpiPins.ino; path = ESP32DefaultSpiPins/ESP32DefaultSpiPins.ino; sourceTree = "<group>"; };
+		2AB5576A2F073D990042A369 /* app.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app.html; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		2A77F5A82DB5795C00B896E1 = {
 			isa = PBXGroup;
 			children = (
+				2AB5576A2F073D990042A369 /* app.html */,
 				2AB557692F0704A30042A369 /* ESP32DefaultSpiPins.ino */,
 				2A7A1F2A2E1DF1190053F196 /* ManualSturmeyArcherFRONT DRUM BRAKE HUBS.pdf */,
 				2A7A1F2B2E1DF1190053F196 /* PART LIST - XL-FDD.pdf */,

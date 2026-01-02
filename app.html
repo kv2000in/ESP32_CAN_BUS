@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+			<meta http-equiv="Content-Language" content="hi" />
+			<title>Smart Sensors</title>
+
+<body>
+
+</body>
+<script>
+	var gateway = `ws:192.168.4.1/ws`;
+	var websocket;
+	window.addEventListener('load', onLoad);
+	function initWebSocket() {
+		console.log('Trying to open a WebSocket connection...');
+		websocket = new WebSocket(gateway);
+		websocket.binaryType = "arraybuffer";
+		websocket.onopen    = onOpen;
+		websocket.onclose   = onClose;
+		websocket.onmessage = (event) => {
+			const data = new Uint8Array(event.data);
+			
+			const id =
+			(data[0] << 24) |
+			(data[1] << 16) |
+			(data[2] << 8) |
+			data[3];
+			
+			const dlc = data[4];
+			const flags = data[5];
+			const payload = data.slice(6, 6 + dlc);
+			
+			console.log("CAN ID:", id.toString(16));
+			console.log("DATA:", [...payload].map(b => b.toString(16)));
+		};
+	}
+function onOpen(event) {
+	console.log('Connection opened');
+}
+function onClose(event) {
+	console.log('Connection closed');
+	setTimeout(initWebSocket, 2000);
+}
+
+function onLoad(event) {
+	initWebSocket();
+
+}
+
+
+
+
+
+
+</script>
+</html>

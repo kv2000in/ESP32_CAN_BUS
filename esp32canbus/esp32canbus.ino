@@ -33,6 +33,7 @@
  *  from the docs https://docs.espressif.com/projects/arduino-esp32/en/latest/api/wifi.html#ap-example
  *  
  *  "// a valid password must have more than 7 characters" - this worked
+ *  ASYNCTCP by ESP32ASYNC version 3.4.10 doesn't compile. Version 3.0.0 compiles.
  *  
  */
 
@@ -44,6 +45,9 @@
 #include <WiFi.h>
 #include <mcp_can.h>
 #include <SPI.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+
 
 long unsigned int rxId;
 unsigned char len = 0;
@@ -54,6 +58,105 @@ char msgString[128];                        // Array to store serial string
 MCP_CAN CAN0(5);                               // Set CS to pin 5 (10 for Atmega)
 
 
+
+AsyncWebServer server(80);
+AsyncWebSocket webSocket("/ws");
+
+void handlecommandsfromwebsocketclients(uint8_t *datasentbywebsocketclient, size_t len) {
+  Serial.printf("Handling command data");
+
+  // Only process data further if it is 24 bytes
+  if (len != 24) {
+    Serial.printf("Invalid data length");
+    return;
+  }
+
+  // Print received data
+  for (size_t i = 0; i < len; i++) {
+    Serial.printf("%02x ", datasentbywebsocketclient[i]);
+  }
+  Serial.println();
+
+  
+}
+
+void onEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
+  if(type == WS_EVT_CONNECT){
+    //client connected
+    Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
+    //client->printf("Z#a020a60a86ce|-811493|2022-4-12 21:33:49");
+    //client->printf("C#a020a60a86ce|500/285|2022-4-12 21:33:49"); 
+    //client->ping();
+  } else if(type == WS_EVT_DISCONNECT){
+    //client disconnected
+    Serial.printf("ws[%s][%u] disconnect: %u\n", server->url(), client->id());
+  } else if(type == WS_EVT_ERROR){
+    //error was received from the other end
+    Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
+  } else if(type == WS_EVT_PONG){
+    //pong message was received (in response to a ping request maybe)
+    Serial.printf("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len)?(char*)data:"");
+  } else if(type == WS_EVT_DATA){
+  
+    AwsFrameInfo * info = (AwsFrameInfo*)arg;
+    if(info->final && info->index == 0 && info->len == len){
+      //the whole message is in a single frame and we got all of it's data
+      Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT)?"text":"binary", info->len);
+      if(info->opcode == WS_TEXT){
+        data[len] = 0;
+        Serial.printf("%s\n", (char*)data);
+//        
+      } else {
+        for(size_t i=0; i < info->len; i++){
+          Serial.printf("%02x ", data[i]);
+        }
+        Serial.printf("\n");
+      }
+      if(info->opcode == WS_TEXT){
+        //client->text("I got your text message");
+      }
+      else{
+        //client->binary("I got your binary message");
+      }
+    
+        
+    } else {
+      //message is comprised of multiple frames or the frame is split into multiple packets
+      if(info->index == 0){
+        if(info->num == 0)
+          Serial.printf("ws[%s][%u] %s-message start\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+        Serial.printf("ws[%s][%u] frame[%u] start[%llu]\n", server->url(), client->id(), info->num, info->len);
+      }
+
+      Serial.printf("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", server->url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
+      if(info->message_opcode == WS_TEXT){
+        data[len] = 0;
+        Serial.printf("%s\n", (char*)data);
+      } else {
+        for(size_t i=0; i < len; i++){
+          Serial.printf("%02x ", data[i]);
+        }
+        Serial.printf("\n");
+      }
+
+      if((info->index + len) == info->len){
+        Serial.printf("ws[%s][%u] frame[%u] end[%llu]\n", server->url(), client->id(), info->num, info->len);
+        if(info->final){
+          Serial.printf("ws[%s][%u] %s-message end\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+          if(info->message_opcode == WS_TEXT){
+           // client->text("I got your text message");
+          }
+          else {
+         //   client->binary("I got your binary message");
+        }
+        }
+      }
+    }
+ //data packet
+    handlecommandsfromwebsocketclients(data,len);
+    
+  }
+}
 
 void setup()
 {
@@ -130,32 +233,51 @@ CAN0.setMode(MCP_NORMAL);
   Serial.print("AP IP: ");
   Serial.println(WiFi.softAPIP());
 
-  
+   webSocket.onEvent(onEvent);
+  server.addHandler(&webSocket);
+  server.begin();
 }
 
 void loop()
 {
-  if(!digitalRead(CAN0_INT))                         // If CAN0_INT pin is low, read receive buffer
+  webSocket.cleanupClients();
+
+  if (!digitalRead(CAN0_INT))
   {
-    CAN0.readMsgBuf(&rxId, &len, rxBuf);      // Read data: len = data length, buf = data byte(s)
-    
-    if((rxId & 0x80000000) == 0x80000000)     // Determine if ID is standard (11 bits) or extended (29 bits)
-      sprintf(msgString, "Extended ID: 0x%.8lX  DLC: %1d  Data:", (rxId & 0x1FFFFFFF), len);
-    else
-      sprintf(msgString, "Standard ID: 0x%.3lX       DLC: %1d  Data:", rxId, len);
-  
-    Serial.print(msgString);
-  
-    if((rxId & 0x40000000) == 0x40000000){    // Determine if message is a remote request frame.
-      sprintf(msgString, " REMOTE REQUEST FRAME");
-      Serial.print(msgString);
-    } else {
-      for(byte i = 0; i<len; i++){
-        sprintf(msgString, " 0x%.2X", rxBuf[i]);
-        Serial.print(msgString);
-      }
+    CAN0.readMsgBuf(&rxId, &len, rxBuf);
+
+    uint8_t wsBuf[16];
+    uint8_t idx = 0;
+
+    // ---- CAN ID (4 bytes, big-endian) ----
+    wsBuf[idx++] = (rxId >> 24) & 0xFF;
+    wsBuf[idx++] = (rxId >> 16) & 0xFF;
+    wsBuf[idx++] = (rxId >> 8)  & 0xFF;
+    wsBuf[idx++] = rxId & 0xFF;
+
+    // ---- DLC ----
+    wsBuf[idx++] = len;
+
+    // ---- Flags ----
+    uint8_t flags = 0;
+    if (rxId & 0x80000000) flags |= 0x01; // Extended
+    if (rxId & 0x40000000) flags |= 0x02; // RTR
+    wsBuf[idx++] = flags;
+
+    // ---- Data ----
+    if (!(flags & 0x02)) {
+      memcpy(&wsBuf[idx], rxBuf, len);
+      idx += len;
     }
-        
+
+    // ---- Send binary to ALL clients ----
+    webSocket.binaryAll(wsBuf, idx);
+
+    // ---- Optional Serial debug ----
+    Serial.print("WS BIN: ");
+    for (uint8_t i = 0; i < idx; i++) {
+      Serial.printf("%02X ", wsBuf[i]);
+    }
     Serial.println();
   }
 }
