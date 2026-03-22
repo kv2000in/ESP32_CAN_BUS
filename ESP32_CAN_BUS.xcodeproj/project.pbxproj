@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		2A4739972F70495400B4DD23 /* sw.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = sw.js; sourceTree = "<group>"; };
+		2A4739982F70495400B4DD23 /* icon-512.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon-512.png"; sourceTree = "<group>"; };
+		2A4739992F70495400B4DD23 /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = manifest.json; sourceTree = "<group>"; };
 		2A77F5AF2DB5798600B896E1 /* esp32canbus.ino */ = {isa = PBXFileReference; lastKnownFileType = text; name = esp32canbus.ino; path = esp32canbus/esp32canbus.ino; sourceTree = "<group>"; };
 		2A77F5B02DB70BD100B896E1 /* Atmega328MCP2515CANSender.ino */ = {isa = PBXFileReference; lastKnownFileType = text; name = Atmega328MCP2515CANSender.ino; path = ../Atmega328MCP2515CANSender/Atmega328MCP2515CANSender.ino; sourceTree = "<group>"; };
 		2A77F5B12DC06D8D00B896E1 /* Atmega328MCP2515CANSender */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Atmega328MCP2515CANSender; sourceTree = "<group>"; };
@@ -29,6 +32,9 @@
 		2A77F5A82DB5795C00B896E1 = {
 			isa = PBXGroup;
 			children = (
+				2A4739982F70495400B4DD23 /* icon-512.png */,
+				2A4739992F70495400B4DD23 /* manifest.json */,
+				2A4739972F70495400B4DD23 /* sw.js */,
 				2AB5576A2F073D990042A369 /* app.html */,
 				2AB557692F0704A30042A369 /* ESP32DefaultSpiPins.ino */,
 				2A7A1F2A2E1DF1190053F196 /* ManualSturmeyArcherFRONT DRUM BRAKE HUBS.pdf */,
