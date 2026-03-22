@@ -242,6 +242,34 @@
 		
 		
 		
+		let wakeLock = null;
+		
+			// Function to request a wake lock
+			const requestWakeLock = async () => {
+				try {
+					wakeLock = await navigator.wakeLock.request('screen');
+					console.log('Wake Lock is active');
+					
+						// Optional: listen for when it is released (e.g., system-level release)
+						wakeLock.addEventListener('release', () => {
+												  console.log('Wake Lock was released');
+												  wakeLock = null;
+												  });
+				} catch (err) {
+					console.error(`${err.name}, ${err.message}`);
+				}
+			};
+		
+			// Re-request the lock whenever the app becomes visible
+			document.addEventListener('visibilitychange', async () => {
+									  if (wakeLock !== null && document.visibilityState === 'visible') {
+									  await requestWakeLock();
+									  }
+									  });
+									  
+										  // Initial request
+										  requestWakeLock();
+		
 		</script>
 		
 	</body>
