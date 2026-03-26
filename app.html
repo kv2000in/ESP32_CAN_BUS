@@ -118,7 +118,7 @@
 		
 			function connectWebSocket() {
 				setWsStatus("connecting");
-			ws = new WebSocket("ws://192.168.4.1/ws"); // <-- change IP
+			ws = new WebSocket("wss://192.168.4.1/ws"); // <-- change IP
 			ws.binaryType = "arraybuffer";
 			ws.onopen = () => {
 				setWsStatus("connected");

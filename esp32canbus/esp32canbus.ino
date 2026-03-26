@@ -88,6 +88,10 @@
  *  "// a valid password must have more than 7 characters" - this worked
  *  ASYNCTCP by ESP32ASYNC version 3.4.10 doesn't compile. Version 3.0.0 compiles.
  *  
+ *  
+ *  
+ *  CAN HIGH LOW Wire polarity matters. Current setup - Yellow high, Green Low
+ *  
  */
 
 
@@ -98,8 +102,82 @@
 #include <WiFi.h>
 #include <mcp_can.h>
 #include <SPI.h>
-#include <AsyncTCP.h>
-#include <ESPAsyncWebServer.h>
+#include <ESPmDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
+
+
+
+
+#include <HTTPSServer.hpp>
+#include <SSLCert.hpp>
+#include <HTTPRequest.hpp>
+#include <HTTPResponse.hpp>
+#include <WebsocketHandler.hpp>
+#define MAX_CLIENTS 5
+
+
+
+using namespace httpsserver;
+
+// Include your generated certificate bytes
+static const uint8_t PKEY[] = R"EOF(
+-----BEGIN PRIVATE KEY-----
+MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDuNcI+/Iz43zJf
+4YllUwDDwnHoTWhJhl3Wr8C5e/fGLF/Y1r+r6VbxsWqTGW1fAgVsjgzEqnISXtuk
+NSs6WExdpylPdr9NKmFHuqzhAAU4q/lZ09w6OwXtDhoGAobBENuES3PhUzGaJUAT
+vtbD+WG6wJVogdgyyB0D+MTpZXQ1iER6+OqthKR8E2AZUZsarTWrZyZdFXt+Usfg
++qdc/wYGhCR4Hx/9dj5shhRkP6+ztE9JAbnoC3B3ccLXDxbANh881UBowsUQvixV
+DMSaCx4nd1aLABdhVSqGjHRRYZJnY7auaFweAzKI5lpve54oit7PF3aUjPVFYuRq
+NdeRaOU5AgMBAAECggEBAMrAyzMdd0glghUGPRIXUiFNkfKuYEOksJ6ZPasjD0SI
+ZJSGROKoW66g2huWmvcxGzjIt6l1gl6Mitr7vm2M1oMoUwsmAbJGjkKla5yfjdIs
+3rJMl7igoGyjghb3c4dFN/Mk3d8+FowjhKTJ3Lc1vq9cWE95pXGjzr6gscoO5pjg
+XTQmp/4CdROV6fIucYAURNzBYbG2udslO32lDNbCXmwOByjDXc0RA76LCAT90eZe
+BbOirR9qhbzm+/3QAV2B/CdCSKThojhsXJndQaTe/kHjPaLKcb9/fKOTZoYfvr5B
+lEq7afQgfS5bCu2LyktbxTiCzGIhyzNbx97w4aQfc2ECgYEA+O52XViiYhelqq2h
+TjnHamj0+s/XuJ1KZS6GsPb+Y6X8PspxMS6RfV8TkdrtjvAbzK6IB+d6Xdd3UOBK
+61zGbShMc5XW3qHSGT19qVFNR1NSpy9haX1Bv0AHyBXuadnBTGu1zt4OhWIYoFVO
+7RPOavjSrVH+F4jbhsygfhHO3PUCgYEA9PlcB2UCL8l/pVIroBIh9I751jae+UDq
+nc/1rA2BlC9eRqDTtZY9VTvSufmYEuwAEAwKUaBp1pJyHItZascqJqkyrYdcsNR/
+uc+Ux/zlXb2fELcMIabLP0cRnAsa3/ECcF8+habtphSHLKhR8G0k3Y3/FHJb/gfV
+p0U6EzagfLUCgYEA7mUY8B6RLJXu7zznTQ4ifzLS4lwoAMKJ28qp7VItn+r3Xn7r
+1ij95m4mRLnAZfJm/SdsWP2C/9n4h3i15x9rXGCKjutB4uZgWhG8hWm6M4OFlVzX
+0nnFfE3q5eCy+aYz62b/r4STrYObh/kK5BrixSlUQe5TA+DqM/dGAFY3oP0CgYBM
+upnPmxyfOR6o+l69qVBHWEz6gmsyqNmTimJpfGV8s4V028TT2HXnb3BmXb37Fz5B
+yHOm83aTBZWGSUM9hZo3N8GuxnoKzNQgr9rq9NQmk1DyHFNJawO4Ext546SMReG8
+rqhXllxTK5TXMPVRN+5XErW1gsg7fdq2pKE3CWIlDQKBgG1w8j3bUEtkX8SDcXYX
+p+ichM5xq36KTwlEzcByxRa8lGZBUDQ+WsOfwP0UeS6codJKLcCMkU28H3/sAGJv
+t8SD8//OEqYM/KwpuWt7R0VLoq+y8NRA3RNlZvhAo0WxTVdLPE0N5tXI+aHoHpQa
+azohGB/ILiW1rqK6JlZZJDHs
+-----END PRIVATE KEY-----
+)EOF";
+
+static const uint8_t CERTFCT[] = R"EOF(
+-----BEGIN CERTIFICATE-----
+MIIC0TCCAbmgAwIBAgIUWmYpnRzT9VNb7OeiOy/WgKgMPFYwDQYJKoZIhvcNAQEL
+BQAwGDEWMBQGA1UEAwwNMTkyLjE2OC4xLjI1NDAeFw0yNjAzMjMwMzA1NTRaFw0z
+NjAzMjAwMzA1NTRaMBgxFjAUBgNVBAMMDTE5Mi4xNjguMS4yNTQwggEiMA0GCSqG
+SIb3DQEBAQUAA4IBDwAwggEKAoIBAQDuNcI+/Iz43zJf4YllUwDDwnHoTWhJhl3W
+r8C5e/fGLF/Y1r+r6VbxsWqTGW1fAgVsjgzEqnISXtukNSs6WExdpylPdr9NKmFH
+uqzhAAU4q/lZ09w6OwXtDhoGAobBENuES3PhUzGaJUATvtbD+WG6wJVogdgyyB0D
++MTpZXQ1iER6+OqthKR8E2AZUZsarTWrZyZdFXt+Usfg+qdc/wYGhCR4Hx/9dj5s
+hhRkP6+ztE9JAbnoC3B3ccLXDxbANh881UBowsUQvixVDMSaCx4nd1aLABdhVSqG
+jHRRYZJnY7auaFweAzKI5lpve54oit7PF3aUjPVFYuRqNdeRaOU5AgMBAAGjEzAR
+MA8GA1UdEQQIMAaHBMCoAf4wDQYJKoZIhvcNAQELBQADggEBAMZXRYXRnWmUF68I
+tZLBef4BmhqL1et+1sfdX+lGz4KZDdej5exs9CnAsP45uAzrm6ynOebpKJW4P/hQ
+YWQZvWT5kuO4+0YREWuVSTTeJ9lNRxRpnx2SGOyxn/v5u6xpJB7fOsMa1YE1fEJN
+PfFkpJSFXvByhtPjT3m3vz4Ck4LUKuQSurN8LK2OGAPgzqQx89MgBJy3lZgMsJkD
+gf2n87+6q8cNFGsJiw+6k8Nf3fPfcKNaSgHcNlNHJT1UsZXKQ1zVYI7bs+5NG2R5
+qyTFquwiNgi3x4axdJRlfgcRrPzbCz6sHaKfY1gjhENmsf4W3uwfyuKKvs9+eqsg
+bCeCOOg=
+-----END CERTIFICATE-----
+)EOF";
+
+
+
+
+
+
 
 
 long unsigned int rxId;
@@ -111,103 +189,74 @@ char msgString[128];                        // Array to store serial string
 MCP_CAN CAN0(5);                               // Set CS to pin 5 (10 for Atmega)
 
 
+// ---------------- WEB SERVER ----------------
+SSLCert cert((uint8_t*)CERTFCT, sizeof(CERTFCT), (uint8_t*)PKEY, sizeof(PKEY));
+HTTPSServer secureServer(&cert);
 
-AsyncWebServer server(80);
-AsyncWebSocket webSocket("/ws");
+class WSSHandler : public WebsocketHandler {
+public:
+  // This method is called by the webserver to instantiate a new handler for each
+  // client that connects to the websocket endpoint
+  static WebsocketHandler* create();
 
-void handlecommandsfromwebsocketclients(uint8_t *datasentbywebsocketclient, size_t len) {
-  Serial.printf("Handling command data");
+  // This method is called when a message arrives
+  void onMessage(WebsocketInputStreambuf * input);
 
-  // Only process data further if it is 24 bytes
-  if (len != 24) {
-    Serial.printf("Invalid data length");
-    return;
-  }
+  // Handler function on connection close
+  void onClose();
+};
 
-  // Print received data
-  for (size_t i = 0; i < len; i++) {
-    Serial.printf("%02x ", datasentbywebsocketclient[i]);
-  }
-  Serial.println();
 
-  
-}
 
-void onEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
-  if(type == WS_EVT_CONNECT){
-    //client connected
-    Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
-    //client->printf("Z#a020a60a86ce|-811493|2022-4-12 21:33:49");
-    //client->printf("C#a020a60a86ce|500/285|2022-4-12 21:33:49"); 
-    //client->ping();
-  } else if(type == WS_EVT_DISCONNECT){
-    //client disconnected
-    Serial.printf("ws[%s][%u] disconnect: %u\n", server->url(), client->id());
-  } else if(type == WS_EVT_ERROR){
-    //error was received from the other end
-    Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
-  } else if(type == WS_EVT_PONG){
-    //pong message was received (in response to a ping request maybe)
-    Serial.printf("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len)?(char*)data:"");
-  } else if(type == WS_EVT_DATA){
-  
-    AwsFrameInfo * info = (AwsFrameInfo*)arg;
-    if(info->final && info->index == 0 && info->len == len){
-      //the whole message is in a single frame and we got all of it's data
-      Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT)?"text":"binary", info->len);
-      if(info->opcode == WS_TEXT){
-        data[len] = 0;
-        Serial.printf("%s\n", (char*)data);
-//        
-      } else {
-        for(size_t i=0; i < info->len; i++){
-          Serial.printf("%02x ", data[i]);
-        }
-        Serial.printf("\n");
-      }
-      if(info->opcode == WS_TEXT){
-        //client->text("I got your text message");
-      }
-      else{
-        //client->binary("I got your binary message");
-      }
-    
-        
-    } else {
-      //message is comprised of multiple frames or the frame is split into multiple packets
-      if(info->index == 0){
-        if(info->num == 0)
-          Serial.printf("ws[%s][%u] %s-message start\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
-        Serial.printf("ws[%s][%u] frame[%u] start[%llu]\n", server->url(), client->id(), info->num, info->len);
-      }
+WSSHandler* activeClients[MAX_CLIENTS] = { nullptr };
 
-      Serial.printf("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", server->url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
-      if(info->message_opcode == WS_TEXT){
-        data[len] = 0;
-        Serial.printf("%s\n", (char*)data);
-      } else {
-        for(size_t i=0; i < len; i++){
-          Serial.printf("%02x ", data[i]);
-        }
-        Serial.printf("\n");
-      }
 
-      if((info->index + len) == info->len){
-        Serial.printf("ws[%s][%u] frame[%u] end[%llu]\n", server->url(), client->id(), info->num, info->len);
-        if(info->final){
-          Serial.printf("ws[%s][%u] %s-message end\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
-          if(info->message_opcode == WS_TEXT){
-           // client->text("I got your text message");
-          }
-          else {
-         //   client->binary("I got your binary message");
-        }
-        }
+// -----------------WEB SOCKET HANLDER ----------
+WebsocketHandler * WSSHandler::create() {
+
+    Serial.println("Client connected");
+
+    WSSHandler* handler = new WSSHandler();
+
+    // Store client
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (activeClients[i] == nullptr) {
+        activeClients[i] = handler;
+        break;
       }
     }
- //data packet
-    handlecommandsfromwebsocketclients(data,len);
-    
+
+
+    return handler;
+  }
+
+  void WSSHandler::onClose() {
+    Serial.println("Client disconnected");
+
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+      if (activeClients[i] == this) {
+        activeClients[i] = nullptr;
+      }
+    }
+  }
+
+void WSSHandler::onMessage(WebsocketInputStreambuf* inbuf) {
+
+    std::ostringstream ss;
+    ss << inbuf;
+    std::string msg = ss.str();
+
+    Serial.println(("WS received: " + msg).c_str());
+
+
+  }
+
+
+void sendBinary(uint8_t* msg, uint16_t len) {
+  for (int i = 0; i < MAX_CLIENTS; i++) {
+    if (activeClients[i] != nullptr) {
+      activeClients[i]->send(msg, len, WebsocketHandler::SEND_TYPE_BINARY);
+    }
   }
 }
 
@@ -285,22 +334,26 @@ CAN0.setMode(MCP_NORMAL);
   Serial.println(ok ? "AP started" : "AP failed");
   Serial.print("AP IP: ");
   Serial.println(WiFi.softAPIP());
+  // WebSocket
+  WebsocketNode* wsNode = new WebsocketNode("/ws", WSSHandler::create);
+  secureServer.registerNode(wsNode);
+  secureServer.start();
+  Serial.println("Secure WSS server running at wss://" + WiFi.softAPIP().toString());
+ArduinoOTA.begin();
 
-   webSocket.onEvent(onEvent);
-  server.addHandler(&webSocket);
-  server.begin();
 }
 
 void loop()
 {
-  webSocket.cleanupClients();
+  ArduinoOTA.handle();
+secureServer.loop();
 
   if (!digitalRead(CAN0_INT))
   {
     CAN0.readMsgBuf(&rxId, &len, rxBuf);
 
     uint8_t wsBuf[16];
-    uint8_t idx = 0;
+    uint16_t idx = 0;
 
     // ---- CAN ID (4 bytes, big-endian) ----
     wsBuf[idx++] = (rxId >> 24) & 0xFF;
@@ -324,7 +377,7 @@ void loop()
     }
 
     // ---- Send binary to ALL clients ----
-    webSocket.binaryAll(wsBuf, idx);
+    sendBinary(wsBuf, idx);
 
     // ---- Optional Serial debug ----
     Serial.print("WS BIN: ");
