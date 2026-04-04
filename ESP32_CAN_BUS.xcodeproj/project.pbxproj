@@ -26,12 +26,16 @@
 		2A7A1F2C2E1DF1190053F196 /* SturmeyArcherFRONT DRUM BRAKE HUBS.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "SturmeyArcherFRONT DRUM BRAKE HUBS.pdf"; sourceTree = "<group>"; };
 		2AB557692F0704A30042A369 /* ESP32DefaultSpiPins.ino */ = {isa = PBXFileReference; lastKnownFileType = text; name = ESP32DefaultSpiPins.ino; path = ESP32DefaultSpiPins/ESP32DefaultSpiPins.ino; sourceTree = "<group>"; };
 		2AB5576A2F073D990042A369 /* app.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = app.html; sourceTree = "<group>"; };
+		2ADD67EC2F8078E0007C61EF /* esp32CANBUSPassThrough.ino */ = {isa = PBXFileReference; lastKnownFileType = text; name = esp32CANBUSPassThrough.ino; path = esp32CANBUSPassThrough/esp32CANBUSPassThrough.ino; sourceTree = "<group>"; };
+		2ADD67ED2F807AD9007C61EF /* Atmega328CANBUSPassthrough.ino */ = {isa = PBXFileReference; lastKnownFileType = text; name = Atmega328CANBUSPassthrough.ino; path = Atmega328CANBUSPassthrough/Atmega328CANBUSPassthrough.ino; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		2A77F5A82DB5795C00B896E1 = {
 			isa = PBXGroup;
 			children = (
+				2ADD67ED2F807AD9007C61EF /* Atmega328CANBUSPassthrough.ino */,
+				2ADD67EC2F8078E0007C61EF /* esp32CANBUSPassThrough.ino */,
 				2A4739982F70495400B4DD23 /* icon-512.png */,
 				2A4739992F70495400B4DD23 /* manifest.json */,
 				2A4739972F70495400B4DD23 /* sw.js */,
